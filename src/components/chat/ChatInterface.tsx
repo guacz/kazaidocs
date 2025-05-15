@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, RefreshCw, FileText, Templates } from 'lucide-react';
+import { Send, RefreshCw, FileText, BookTemplate as Templates } from 'lucide-react';
 import { useChat } from '../../contexts/ChatContext';
 import { useLocale } from '../../contexts/LocaleContext';
 import { useAuth } from '../../contexts/AuthContext';
