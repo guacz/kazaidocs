@@ -1,11 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, RefreshCw, FileText } from 'lucide-react';
+import { Send, RefreshCw, FileText, Templates } from 'lucide-react';
 import { useChat } from '../../contexts/ChatContext';
 import { useLocale } from '../../contexts/LocaleContext';
 import { useAuth } from '../../contexts/AuthContext';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import ChatMessage from './ChatMessage';
 import DocumentPreview from './DocumentPreview';
+import TemplateSelector from '../templates/TemplateSelector';
+import TemplateForm from '../templates/TemplateForm';
+import { Template, TemplateFormData } from '../../types';
 
 const ChatInterface: React.FC = () => {
   const { 
@@ -15,12 +18,15 @@ const ChatInterface: React.FC = () => {
     isProcessing, 
     documentType, 
     documentStatus,
-    generateDocument 
+    generateDocument,
+    generateFromTemplate
   } = useChat();
   const { t } = useLocale();
   const { user, openAuthModal } = useAuth();
   const [inputValue, setInputValue] = useState('');
   const [documentUrl, setDocumentUrl] = useState<string | null>(null);
+  const [showTemplateSelector, setShowTemplateSelector] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -56,11 +62,39 @@ const ChatInterface: React.FC = () => {
     }
   };
 
+  const handleGenerateFromTemplate = async (templateId: string, formData: TemplateFormData) => {
+    if (!user) {
+      openAuthModal();
+      return;
+    }
+
+    try {
+      const url = await generateFromTemplate(templateId, formData);
+      setSelectedTemplate(null);
+      setDocumentUrl(url);
+    } catch (error) {
+      console.error('Failed to generate document from template:', error);
+    }
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSubmit(e);
     }
+  };
+
+  const toggleTemplateSelector = () => {
+    setShowTemplateSelector(!showTemplateSelector);
+    setSelectedTemplate(null);
+  };
+
+  const handleSelectTemplate = (template: Template) => {
+    setSelectedTemplate(template);
+  };
+
+  const handleBackFromTemplate = () => {
+    setSelectedTemplate(null);
   };
 
   return (
@@ -72,8 +106,65 @@ const ChatInterface: React.FC = () => {
             <ChatMessage key={message.id} message={message} />
           ))}
           
-          {/* Show document preview when ready */}
-          {documentStatus === 'ready' && (
+          {/* Template selector option when document type is detected */}
+          {documentType && documentStatus !== 'not_started' && !documentUrl && (
+            <motion.div 
+              className="flex justify-center my-4"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <button 
+                className="btn-outline flex items-center"
+                onClick={toggleTemplateSelector}
+              >
+                <Templates className="mr-2 h-5 w-5" />
+                {showTemplateSelector ? t('hideTemplates') : t('useTemplate')}
+              </button>
+            </motion.div>
+          )}
+          
+          {/* Template selector */}
+          <AnimatePresence>
+            {showTemplateSelector && documentType && !selectedTemplate && (
+              <motion.div 
+                className="max-w-3xl mx-auto my-4 bg-white p-5 rounded-lg shadow-sm"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+              >
+                <h3 className="text-lg font-medium text-primary-900 mb-3">{t('selectTemplateHeader')}</h3>
+                <p className="text-gray-600 text-sm mb-4">{t('selectTemplateDescription')}</p>
+                
+                <TemplateSelector 
+                  documentType={documentType} 
+                  onSelectTemplate={handleSelectTemplate}
+                  disabled={isProcessing}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+          
+          {/* Template form */}
+          <AnimatePresence>
+            {selectedTemplate && (
+              <motion.div 
+                className="max-w-3xl mx-auto my-4"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+              >
+                <TemplateForm 
+                  template={selectedTemplate}
+                  onSubmit={handleGenerateFromTemplate}
+                  onBack={handleBackFromTemplate}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+          
+          {/* Show document action button when ready */}
+          {documentStatus === 'ready' && !showTemplateSelector && !selectedTemplate && !documentUrl && (
             <motion.div 
               className="flex justify-center my-4"
               initial={{ opacity: 0, y: 10 }}

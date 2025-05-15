@@ -1,8 +1,9 @@
 /**
  * OpenAI API service for handling chat interactions
  */
-import { Message, DocumentType, DocumentStatus } from '../types';
+import { Message, DocumentType, DocumentStatus, TemplateFormData } from '../types';
 import { createClient } from '@supabase/supabase-js';
+import { getTemplateById, fillTemplate } from './templates';
 
 // Initialize Supabase client only when needed
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
@@ -106,7 +107,7 @@ const getMockResponse = (messages: Message[], documentType: DocumentType | null)
   let response = 'Извините, я не смог подключиться к серверу. Пожалуйста, проверьте подключение к интернету и попробуйте еще раз.';
   
   if (detectedDocType && documentStatus === 'ready') {
-    response = `Отлично! У меня есть вся необходимая информация для составления документа "${detectedDocType}". Вы можете сформировать его, нажав кнопку ниже.`;
+    response = `Отлично! У меня есть вся необходимая информация для составления документа "${detectedDocType}". Вы можете сформировать его, нажав кнопку ниже, или выбрать готовый шаблон для более быстрого заполнения.`;
   } else if (detectedDocType) {
     response = `Я понимаю, что вам нужен документ типа "${detectedDocType}". Расскажите, пожалуйста, подробнее о ваших требованиях к этому документу.`;
   } else if (userInput.includes('привет') || userInput.includes('здравствуй')) {
@@ -123,7 +124,7 @@ const getMockResponse = (messages: Message[], documentType: DocumentType | null)
 };
 
 /**
- * Mock function to generate a document
+ * AI-generated document based on conversation
  * In a real implementation, this would call another edge function to generate the actual document
  */
 export const generateDocument = async (documentType: DocumentType): Promise<string> => {
@@ -134,4 +135,34 @@ export const generateDocument = async (documentType: DocumentType): Promise<stri
       resolve(`/documents/${documentType}_${Date.now()}.pdf`);
     }, 2000);
   });
+};
+
+/**
+ * Generate document from a template with the provided form data
+ */
+export const generateDocumentFromTemplate = async (
+  templateId: string, 
+  formData: TemplateFormData
+): Promise<string> => {
+  try {
+    // Get the template
+    const template = await getTemplateById(templateId);
+    if (!template) {
+      throw new Error('Template not found');
+    }
+    
+    // Fill the template with the form data
+    const filledContent = fillTemplate(template.content, formData);
+    
+    // In a real implementation, this would convert the filled template to a document
+    // For this demo, we'll simulate a delay and return a mock URL
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(`/documents/template_${template.document_type}_${Date.now()}.pdf`);
+      }, 2000);
+    });
+  } catch (error) {
+    console.error('Error generating document from template:', error);
+    throw new Error('Failed to generate document from template');
+  }
 };

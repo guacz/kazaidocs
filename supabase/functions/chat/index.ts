@@ -1,6 +1,7 @@
 // OpenAI integration Edge Function for secure API access
 
 import { OpenAI } from "npm:openai@4.28.4";
+import { createClient } from "npm:@supabase/supabase-js@2.39.7";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -10,6 +11,11 @@ const corsHeaders = {
 
 // Environment variables set in Supabase
 const openaiApiKey = Deno.env.get("OPENAI_API_KEY") || "";
+const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
+const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+
+// Initialize Supabase client
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 Deno.serve(async (req: Request) => {
   // Handle CORS preflight requests
@@ -21,7 +27,7 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { messages, documentType } = await req.json();
+    const { messages, documentType, templateId, formData } = await req.json();
 
     if (!messages || !Array.isArray(messages)) {
       return new Response(
@@ -41,6 +47,45 @@ Deno.serve(async (req: Request) => {
       apiKey: openaiApiKey,
     });
 
+    // If the request includes a template ID and form data, use the template-based generation
+    if (templateId && formData) {
+      // Get the template from the database
+      const { data: template, error: templateError } = await supabase
+        .from("templates")
+        .select("*")
+        .eq("id", templateId)
+        .single();
+
+      if (templateError) {
+        return new Response(
+          JSON.stringify({ error: "Template not found" }),
+          {
+            status: 404,
+            headers: {
+              "Content-Type": "application/json",
+              ...corsHeaders,
+            },
+          }
+        );
+      }
+
+      // Use the template to generate a document
+      // In a real implementation, this would fill the template with the form data
+      // and convert it to a document format
+
+      return new Response(
+        JSON.stringify({
+          documentUrl: `/documents/template_${template.document_type}_${Date.now()}.pdf`,
+        }),
+        {
+          headers: {
+            "Content-Type": "application/json",
+            ...corsHeaders,
+          },
+        }
+      );
+    }
+
     // System prompt to define the AI's role and behavior
     const systemPrompt = {
       role: "system",
@@ -49,7 +94,10 @@ Deno.serve(async (req: Request) => {
       Provide clear explanations and ask relevant questions to gather necessary information.
       Always respond in the same language the user is using (Kazakh or Russian).
       ${documentType ? `The user is creating a ${documentType} document.` : ""}
-      Base all advice and documents on current Kazakhstan legislation.`
+      Base all advice and documents on current Kazakhstan legislation.
+      
+      You can now also recommend users to use pre-made templates for faster document creation.
+      When appropriate, mention that they can use templates by clicking the "Use Template" button.`
     };
 
     // Add the system message at the beginning if not already present

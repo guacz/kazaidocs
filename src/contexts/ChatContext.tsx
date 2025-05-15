@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
-import { Message, DocumentType, DocumentStatus } from '../types';
+import { Message, DocumentType, DocumentStatus, TemplateFormData } from '../types';
 import { useLocale } from './LocaleContext';
-import { sendChatMessage, generateDocument as generateDocumentAPI } from '../services/openai';
+import { sendChatMessage, generateDocument as generateDocumentAPI, generateDocumentFromTemplate } from '../services/openai';
 
 interface ChatContextType {
   messages: Message[];
@@ -11,6 +11,7 @@ interface ChatContextType {
   sendMessage: (content: string) => void;
   resetChat: () => void;
   generateDocument: () => Promise<string>;
+  generateFromTemplate: (templateId: string, formData: TemplateFormData) => Promise<string>;
 }
 
 const ChatContext = createContext<ChatContextType>({
@@ -21,6 +22,7 @@ const ChatContext = createContext<ChatContextType>({
   sendMessage: () => {},
   resetChat: () => {},
   generateDocument: async () => '',
+  generateFromTemplate: async () => '',
 });
 
 interface ChatProviderProps {
@@ -132,6 +134,34 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     }
   }, [documentType, documentStatus, t]);
 
+  // Generate document from a template
+  const generateFromTemplate = useCallback(async (templateId: string, formData: TemplateFormData): Promise<string> => {
+    setIsProcessing(true);
+    
+    try {
+      // Call the document generation API with the template
+      const documentUrl = await generateDocumentFromTemplate(templateId, formData);
+      setDocumentStatus('completed');
+      
+      // Add a system message about the template usage
+      const templateMessage: Message = {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: t('templateDocumentGenerated'),
+        timestamp: new Date(),
+      };
+      
+      setMessages((prevMessages) => [...prevMessages, templateMessage]);
+      
+      return documentUrl;
+    } catch (error) {
+      console.error('Error generating document from template:', error);
+      throw new Error(t('templateGenerationError'));
+    } finally {
+      setIsProcessing(false);
+    }
+  }, [t]);
+
   const value = {
     messages,
     documentType,
@@ -140,6 +170,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     sendMessage,
     resetChat,
     generateDocument,
+    generateFromTemplate,
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
