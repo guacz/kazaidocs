@@ -1,0 +1,148 @@
+import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import { Message, DocumentType, DocumentStatus } from '../types';
+import { useLocale } from './LocaleContext';
+import { sendChatMessage, generateDocument as generateDocumentAPI } from '../services/openai';
+
+interface ChatContextType {
+  messages: Message[];
+  documentType: DocumentType | null;
+  documentStatus: DocumentStatus;
+  isProcessing: boolean;
+  sendMessage: (content: string) => void;
+  resetChat: () => void;
+  generateDocument: () => Promise<string>;
+}
+
+const ChatContext = createContext<ChatContextType>({
+  messages: [],
+  documentType: null,
+  documentStatus: 'not_started',
+  isProcessing: false,
+  sendMessage: () => {},
+  resetChat: () => {},
+  generateDocument: async () => '',
+});
+
+interface ChatProviderProps {
+  children: ReactNode;
+}
+
+export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
+  const { t } = useLocale();
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: '1',
+      role: 'assistant',
+      content: t('welcomeMessage'),
+      timestamp: new Date(),
+    },
+  ]);
+  const [documentType, setDocumentType] = useState<DocumentType | null>(null);
+  const [documentStatus, setDocumentStatus] = useState<DocumentStatus>('not_started');
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  // Send a user message and get the AI response
+  const sendMessage = useCallback(async (content: string) => {
+    // Add user message
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      role: 'user',
+      content,
+      timestamp: new Date(),
+    };
+    
+    setMessages((prevMessages) => [...prevMessages, userMessage]);
+    setIsProcessing(true);
+    
+    try {
+      // Send the message to the OpenAI API via our edge function
+      const currentMessages = [...messages, userMessage];
+      const response = await sendChatMessage({
+        messages: currentMessages,
+        documentType
+      });
+      
+      // Update document type and status if received from API
+      if (response.documentType && !documentType) {
+        setDocumentType(response.documentType);
+      }
+      
+      if (response.documentStatus !== documentStatus) {
+        setDocumentStatus(response.documentStatus);
+      }
+      
+      // Add assistant response
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: response.response,
+        timestamp: new Date(),
+      };
+      
+      setMessages((prevMessages) => [...prevMessages, assistantMessage]);
+    } catch (error) {
+      console.error('Error in sendMessage:', error);
+      
+      // Add error message
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: t('errorMessage'),
+        timestamp: new Date(),
+      };
+      
+      setMessages((prevMessages) => [...prevMessages, errorMessage]);
+    } finally {
+      setIsProcessing(false);
+    }
+  }, [documentType, documentStatus, messages, t]);
+
+  // Reset the chat
+  const resetChat = useCallback(() => {
+    setMessages([
+      {
+        id: '1',
+        role: 'assistant',
+        content: t('welcomeMessage'),
+        timestamp: new Date(),
+      },
+    ]);
+    setDocumentType(null);
+    setDocumentStatus('not_started');
+  }, [t]);
+
+  // Generate the document
+  const generateDocument = useCallback(async (): Promise<string> => {
+    if (!documentType || documentStatus !== 'ready') {
+      throw new Error(t('documentNotReady'));
+    }
+    
+    setIsProcessing(true);
+    
+    try {
+      // Call the document generation API
+      const documentUrl = await generateDocumentAPI(documentType);
+      setDocumentStatus('completed');
+      return documentUrl;
+    } catch (error) {
+      console.error('Error generating document:', error);
+      throw new Error(t('documentGenerationError'));
+    } finally {
+      setIsProcessing(false);
+    }
+  }, [documentType, documentStatus, t]);
+
+  const value = {
+    messages,
+    documentType,
+    documentStatus,
+    isProcessing,
+    sendMessage,
+    resetChat,
+    generateDocument,
+  };
+
+  return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
+};
+
+export const useChat = () => useContext(ChatContext);

@@ -1,0 +1,115 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-primary: 39 67 125; /* Dark blue */
+    --color-secondary: 84 105 141; /* Medium blue */
+    --color-accent: 233 76 88; /* Red accent */
+    --color-success: 34 197 94; /* Green */
+    --color-warning: 234 179 8; /* Yellow */
+    --color-error: 220 38 38; /* Red */
+    --color-background: 250 250 250; /* Off-white */
+  }
+
+  html {
+    @apply scroll-smooth antialiased;
+  }
+
+  body {
+    @apply bg-background text-gray-800 font-normal leading-relaxed;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 
+      'Helvetica Neue', Arial, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold leading-tight text-primary-900;
+  }
+
+  h1 { @apply text-4xl md:text-5xl mb-6; }
+  h2 { @apply text-3xl md:text-4xl mb-5; }
+  h3 { @apply text-2xl md:text-3xl mb-4; }
+  h4 { @apply text-xl md:text-2xl mb-3; }
+  h5 { @apply text-lg md:text-xl mb-2; }
+  h6 { @apply text-base md:text-lg mb-2; }
+
+  a {
+    @apply text-primary-700 hover:text-primary-900 transition-colors duration-200;
+  }
+
+  p {
+    @apply mb-4;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center px-6 py-3 border border-transparent 
+      rounded-md font-medium transition-colors duration-200 focus:outline-none 
+      focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
+  }
+
+  .btn-primary {
+    @apply btn bg-primary-600 hover:bg-primary-700 text-white focus:ring-primary-500;
+  }
+
+  .btn-outline {
+    @apply btn border-primary-300 text-primary-700 hover:bg-primary-50 focus:ring-primary-500;
+  }
+
+  .btn-secondary {
+    @apply btn bg-secondary-600 hover:bg-secondary-700 text-white focus:ring-secondary-500;
+  }
+
+  .btn-sm {
+    @apply px-4 py-2 text-sm;
+  }
+
+  .btn-lg {
+    @apply px-8 py-4 text-lg;
+  }
+
+  .input {
+    @apply appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md 
+      shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary-500 
+      focus:border-primary-500 sm:text-sm;
+  }
+
+  .chat-container {
+    @apply flex-1 overflow-y-auto p-4 space-y-4;
+  }
+
+  .chat-message {
+    @apply flex w-full max-w-4xl mx-auto animate-fadeIn;
+  }
+
+  .chat-bubble {
+    @apply px-4 py-3 rounded-lg max-w-[80%];
+  }
+
+  .user-message {
+    @apply justify-end;
+  }
+
+  .user-bubble {
+    @apply bg-primary-100 text-primary-900 rounded-tr-none;
+  }
+
+  .ai-message {
+    @apply justify-start;
+  }
+
+  .ai-bubble {
+    @apply bg-white border border-gray-200 text-gray-800 rounded-tl-none shadow-sm;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-in-out;
+}
