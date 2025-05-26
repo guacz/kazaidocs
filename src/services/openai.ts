@@ -48,32 +48,44 @@ export const sendChatMessage = async ({
 
     // Initialize Supabase client if not already initialized and credentials are available
     if (!supabase && supabaseUrl && supabaseAnonKey) {
-      supabase = createClient(supabaseUrl, supabaseAnonKey);
+      try {
+        supabase = createClient(supabaseUrl, supabaseAnonKey);
+      } catch (err) {
+        console.error('Failed to initialize Supabase client:', err);
+        return getMockResponse(messages, documentType, mode);
+      }
     }
 
     // Call the Supabase Edge Function if client is available
     if (supabase) {
-      const { data, error } = await supabase.functions.invoke('chat', {
-        body: {
-          messages: formattedMessages,
-          documentType,
-          mode
+      try {
+        const { data, error } = await supabase.functions.invoke('chat', {
+          body: {
+            messages: formattedMessages,
+            documentType,
+            mode
+          }
+        });
+
+        if (error) {
+          console.error('Supabase Edge Function error:', error);
+          // Fall back to mock response instead of throwing
+          return getMockResponse(messages, documentType, mode);
         }
-      });
 
-      if (error) {
-        console.error('Supabase Edge Function error:', error);
-        throw new Error(error.message);
+        return {
+          response: data.response,
+          documentType: data.documentType,
+          documentStatus: data.documentStatus,
+          references: data.references
+        };
+      } catch (err) {
+        console.error('Failed to send a request to the Edge Function:', err);
+        return getMockResponse(messages, documentType, mode);
       }
-
-      return {
-        response: data.response,
-        documentType: data.documentType,
-        documentStatus: data.documentStatus,
-        references: data.references
-      };
     } else {
       // Fallback to mock if client initialization failed
+      console.warn('Supabase client not available, using mock response');
       return getMockResponse(messages, documentType, mode);
     }
   } catch (error) {
