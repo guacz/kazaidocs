@@ -1,9 +1,9 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createClient, User } from '@supabase/supabase-js';
 
-interface User {
-  email: string;
-  phone?: string;
-}
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 interface AuthContextType {
   user: User | null;
@@ -34,19 +34,32 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Check local storage for existing user session on load
+  // Check for existing session on load
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
+    const checkSession = async () => {
       try {
-        setUser(JSON.parse(storedUser));
+        const { data: { session } } = await supabase.auth.getSession();
+        setUser(session?.user || null);
       } catch (err) {
-        localStorage.removeItem('user');
+        console.error('Error checking session:', err);
+      } finally {
+        setIsLoading(false);
       }
-    }
+    };
+
+    checkSession();
+
+    // Set up auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user || null);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const openAuthModal = () => setIsModalOpen(true);
@@ -68,7 +81,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // For MVP, we'll just set the user directly without actual authentication
       // In a real app, this would call an auth API
       const newUser = { email, phone };
-      setUser(newUser);
+      setUser(newUser as any);
       localStorage.setItem('user', JSON.stringify(newUser));
       closeAuthModal();
     } catch (err) {
@@ -78,9 +91,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('user');
+  const logout = async () => {
+    try {
+      await supabase.auth.signOut();
+      setUser(null);
+    } catch (err) {
+      console.error('Error signing out:', err);
+    }
   };
 
   const value = {

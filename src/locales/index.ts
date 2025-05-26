@@ -161,6 +161,56 @@ const translations = {
     processing: 'Обработка...',
     authDisclaimer: 'Предоставляя свои данные, вы соглашаетесь с условиями обработки персональных данных.',
     
+    // Authentication
+    login: 'Войти',
+    loginTitle: 'Вход в аккаунт',
+    loginError: 'Ошибка входа. Проверьте ваши учетные данные и попробуйте снова.',
+    password: 'Пароль',
+    signUp: 'Зарегистрироваться',
+    signupTitle: 'Создание аккаунта',
+    signupError: 'Ошибка при регистрации. Пожалуйста, попробуйте снова.',
+    signupSuccess: 'Регистрация успешна! Перенаправление на страницу входа...',
+    confirmPassword: 'Подтвердите пароль',
+    passwordsDoNotMatch: 'Пароли не совпадают',
+    noAccount: 'Нет аккаунта?',
+    alreadyHaveAccount: 'Уже есть аккаунт?',
+    logout: 'Выйти',
+    
+    // Subscription
+    pricing: 'Тарифы',
+    pricingTitle: 'Выберите подходящий тариф',
+    pricingSubtitle: 'Получите доступ к полному функционалу нашего сервиса',
+    subscribe: 'Подписаться',
+    month: 'месяц',
+    featureUnlimitedDocuments: 'Неограниченное количество документов',
+    featureAIAssistance: 'Помощь искусственного интеллекта',
+    securePayment: 'Безопасная оплата через Stripe',
+    termsApply: 'Применяются условия использования и политика конфиденциальности',
+    checkoutError: 'Ошибка при создании сессии оплаты. Пожалуйста, попробуйте позже.',
+    
+    // Payment
+    paymentSuccessTitle: 'Оплата успешно выполнена!',
+    paymentSuccessMessage: 'Спасибо за вашу подписку. Теперь у вас есть доступ ко всем функциям нашего сервиса.',
+    paymentCanceledTitle: 'Оплата отменена',
+    paymentCanceledMessage: 'Ваша оплата была отменена. Если у вас возникли проблемы, пожалуйста, свяжитесь с нашей службой поддержки.',
+    tryAgain: 'Попробовать снова',
+    goToDocuments: 'Перейти к документам',
+    backToHome: 'Вернуться на главную',
+    
+    // Subscription
+    subscriptionDetails: 'Детали подписки',
+    plan: 'План',
+    status: 'Статус',
+    nextBillingDate: 'Следующее списание',
+    unknownPlan: 'Неизвестный план',
+    currentSubscription: 'Текущая подписка',
+    active: 'Активна',
+    noActiveSubscription: 'Нет активной подписки',
+    notLoggedIn: 'Вы не вошли в систему',
+    upgradePromptLoggedIn: 'Получите доступ ко всем функциям с нашей премиум-подпиской',
+    upgradePromptLoggedOut: 'Зарегистрируйтесь и получите доступ ко всем функциям с нашей премиум-подпиской',
+    viewPlans: 'Посмотреть тарифы',
+    
     // FAQ
     frequentlyAskedQuestions: 'Часто задаваемые вопросы',
     stillHaveQuestions: 'Остались вопросы?',
@@ -410,6 +460,56 @@ const translations = {
     continue: 'Жалғастыру',
     processing: 'Өңдеу...',
     authDisclaimer: 'Деректеріңізді ұсыну арқылы сіз дербес деректерді өңдеу шарттарымен келісесіз.',
+    
+    // Authentication
+    login: 'Кіру',
+    loginTitle: 'Аккаунтқа кіру',
+    loginError: 'Кіру қатесі. Тіркелгі деректеріңізді тексеріп, қайталап көріңіз.',
+    password: 'Құпия сөз',
+    signUp: 'Тіркелу',
+    signupTitle: 'Аккаунт жасау',
+    signupError: 'Тіркелу кезінде қате орын алды. Қайталап көріңіз.',
+    signupSuccess: 'Тіркелу сәтті аяқталды! Кіру бетіне бағытталуда...',
+    confirmPassword: 'Құпия сөзді растаңыз',
+    passwordsDoNotMatch: 'Құпия сөздер сәйкес келмейді',
+    noAccount: 'Аккаунтыңыз жоқ па?',
+    alreadyHaveAccount: 'Аккаунтыңыз бар ма?',
+    logout: 'Шығу',
+    
+    // Subscription
+    pricing: 'Тарифтер',
+    pricingTitle: 'Сізге сәйкес тарифті таңдаңыз',
+    pricingSubtitle: 'Біздің қызметтің толық функционалына қол жеткізіңіз',
+    subscribe: 'Жазылу',
+    month: 'ай',
+    featureUnlimitedDocuments: 'Шексіз құжаттар саны',
+    featureAIAssistance: 'Жасанды интеллект көмегі',
+    securePayment: 'Stripe арқылы қауіпсіз төлем',
+    termsApply: 'Қолдану шарттары мен құпиялылық саясаты қолданылады',
+    checkoutError: 'Төлем сессиясын жасау кезінде қате орын алды. Кейінірек қайталап көріңіз.',
+    
+    // Payment
+    paymentSuccessTitle: 'Төлем сәтті аяқталды!',
+    paymentSuccessMessage: 'Жазылымыңыз үшін рахмет. Енді сізде біздің қызметтің барлық функцияларына қол жетімділік бар.',
+    paymentCanceledTitle: 'Төлем тоқтатылды',
+    paymentCanceledMessage: 'Сіздің төлеміңіз тоқтатылды. Егер сізде мәселелер туындаса, біздің қолдау қызметіне хабарласыңыз.',
+    tryAgain: 'Қайталап көру',
+    goToDocuments: 'Құжаттарға өту',
+    backToHome: 'Басты бетке оралу',
+    
+    // Subscription
+    subscriptionDetails: 'Жазылым мәліметтері',
+    plan: 'Жоспар',
+    status: 'Күйі',
+    nextBillingDate: 'Келесі төлем',
+    unknownPlan: 'Белгісіз жоспар',
+    currentSubscription: 'Ағымдағы жазылым',
+    active: 'Белсенді',
+    noActiveSubscription: 'Белсенді жазылым жоқ',
+    notLoggedIn: 'Сіз жүйеге кірмегенсіз',
+    upgradePromptLoggedIn: 'Біздің премиум-жазылыммен барлық функцияларға қол жеткізіңіз',
+    upgradePromptLoggedOut: 'Тіркеліңіз және біздің премиум-жазылыммен барлық функцияларға қол жеткізіңіз',
+    viewPlans: 'Тарифтерді қарау',
     
     // FAQ
     frequentlyAskedQuestions: 'Жиі қойылатын сұрақтар',

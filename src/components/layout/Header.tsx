@@ -1,19 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Scroll, Globe } from 'lucide-react';
+import { Menu, X, Scroll, Globe, LogOut } from 'lucide-react';
 import { useLocale } from '../../contexts/LocaleContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { cn } from '../../utils/cn';
+import SubscriptionStatus from '../subscription/SubscriptionStatus';
 
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const { locale, setLocale, t } = useLocale();
-  const { user, openAuthModal } = useAuth();
+  const { user, logout } = useAuth();
   const location = useLocation();
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   const closeMenu = () => setIsMenuOpen(false);
+  const toggleUserMenu = () => setIsUserMenuOpen(!isUserMenuOpen);
+  const closeUserMenu = () => setIsUserMenuOpen(false);
 
   // Check if page is scrolled for header styling
   useEffect(() => {
@@ -32,7 +36,13 @@ const Header: React.FC = () => {
     { to: '/documents', label: t('documentFiller') },
     { to: '/faq', label: t('faq') },
     { to: '/contact', label: t('contact') },
+    { to: '/pricing', label: t('pricing') },
   ];
+
+  const handleLogout = async () => {
+    await logout();
+    closeUserMenu();
+  };
 
   return (
     <header 
@@ -81,16 +91,39 @@ const Header: React.FC = () => {
 
             {/* Authentication */}
             {user ? (
-              <button className="btn-primary btn-sm">
-                {user.email.substring(0, user.email.indexOf('@'))}
-              </button>
+              <div className="relative">
+                <button 
+                  className="btn-primary btn-sm flex items-center"
+                  onClick={toggleUserMenu}
+                >
+                  <span>{user.email?.split('@')[0]}</span>
+                </button>
+                
+                {isUserMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 border border-gray-200">
+                    <div className="px-4 py-2 border-b border-gray-100">
+                      <p className="text-sm font-medium text-gray-900 truncate">{user.email}</p>
+                      <SubscriptionStatus compact />
+                    </div>
+                    <button
+                      className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={handleLogout}
+                    >
+                      <LogOut className="h-4 w-4 mr-2" />
+                      {t('logout')}
+                    </button>
+                  </div>
+                )}
+              </div>
             ) : (
-              <button 
-                className="btn-outline btn-sm"
-                onClick={openAuthModal}
-              >
-                {t('signIn')}
-              </button>
+              <div className="flex space-x-2">
+                <Link to="/login" className="btn-outline btn-sm">
+                  {t('login')}
+                </Link>
+                <Link to="/signup" className="btn-primary btn-sm">
+                  {t('signUp')}
+                </Link>
+              </div>
             )}
           </div>
         </nav>
@@ -143,19 +176,38 @@ const Header: React.FC = () => {
 
               {/* Authentication */}
               {user ? (
-                <div className="flex items-center text-gray-600 py-2">
-                  <span className="font-medium">{user.email}</span>
+                <div className="space-y-2">
+                  <div className="flex items-center text-gray-700 py-2">
+                    <span className="font-medium">{user.email}</span>
+                  </div>
+                  <button 
+                    className="flex items-center text-red-600 py-2"
+                    onClick={async () => {
+                      await logout();
+                      closeMenu();
+                    }}
+                  >
+                    <LogOut className="h-5 w-5 mr-2" />
+                    {t('logout')}
+                  </button>
                 </div>
               ) : (
-                <button 
-                  className="btn-primary w-full"
-                  onClick={() => {
-                    openAuthModal();
-                    closeMenu();
-                  }}
-                >
-                  {t('signIn')}
-                </button>
+                <div className="flex flex-col space-y-2">
+                  <Link 
+                    to="/login" 
+                    className="btn-outline w-full"
+                    onClick={closeMenu}
+                  >
+                    {t('login')}
+                  </Link>
+                  <Link 
+                    to="/signup" 
+                    className="btn-primary w-full"
+                    onClick={closeMenu}
+                  >
+                    {t('signUp')}
+                  </Link>
+                </div>
               )}
             </div>
           </div>
