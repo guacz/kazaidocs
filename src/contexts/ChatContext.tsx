@@ -27,15 +27,16 @@ const ChatContext = createContext<ChatContextType>({
 
 interface ChatProviderProps {
   children: ReactNode;
+  mode?: 'consultation' | 'document';
 }
 
-export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
+export const ChatProvider: React.FC<ChatProviderProps> = ({ children, mode = 'consultation' }) => {
   const { t } = useLocale();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
       role: 'assistant',
-      content: t('welcomeMessage'),
+      content: mode === 'consultation' ? t('consultationWelcomeMessage') : t('welcomeMessage'),
       timestamp: new Date(),
     },
   ]);
@@ -61,7 +62,8 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
       const currentMessages = [...messages, userMessage];
       const response = await sendChatMessage({
         messages: currentMessages,
-        documentType
+        documentType,
+        mode
       });
       
       // Update document type and status if received from API
@@ -97,7 +99,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     } finally {
       setIsProcessing(false);
     }
-  }, [documentType, documentStatus, messages, t]);
+  }, [documentType, documentStatus, messages, t, mode]);
 
   // Reset the chat
   const resetChat = useCallback(() => {
@@ -105,13 +107,13 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
       {
         id: '1',
         role: 'assistant',
-        content: t('welcomeMessage'),
+        content: mode === 'consultation' ? t('consultationWelcomeMessage') : t('welcomeMessage'),
         timestamp: new Date(),
       },
     ]);
     setDocumentType(null);
     setDocumentStatus('not_started');
-  }, [t]);
+  }, [t, mode]);
 
   // Generate the document
   const generateDocument = useCallback(async (): Promise<string> => {

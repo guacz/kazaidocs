@@ -1,11 +1,30 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FileText, MessageSquare, Download, CheckCircle } from 'lucide-react';
+import { FileText, MessageSquare, Download, CheckCircle, Users, Bot, FileBox } from 'lucide-react';
 import { useLocale } from '../contexts/LocaleContext';
 import { motion } from 'framer-motion';
 
 const HomePage: React.FC = () => {
   const { t } = useLocale();
+  
+  const modules = [
+    {
+      icon: <Bot className="h-6 w-6 text-white" />,
+      title: t('consultationModule'),
+      description: t('consultationModuleDescription'),
+      link: '/consultation',
+      buttonText: t('getConsultation'),
+      color: 'bg-primary-600',
+    },
+    {
+      icon: <FileBox className="h-6 w-6 text-white" />,
+      title: t('documentModule'),
+      description: t('documentModuleDescription'),
+      link: '/documents',
+      buttonText: t('createDocument'),
+      color: 'bg-secondary-600',
+    }
+  ];
   
   const features = [
     {
@@ -71,14 +90,34 @@ const HomePage: React.FC = () => {
             </p>
           </motion.div>
           
+          {/* Core Modules */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.5 }}
+            className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto mt-10"
           >
-            <Link to="/chat" className="btn-primary btn-lg">
-              {t('startNow')}
-            </Link>
+            {modules.map((module, index) => (
+              <motion.div
+                key={index}
+                className="bg-white rounded-lg p-8 shadow-md border border-gray-100 flex flex-col items-center text-center"
+                whileHover={{ y: -5, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)" }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className={`${module.color} w-16 h-16 rounded-full flex items-center justify-center mb-4`}>
+                  {module.icon}
+                </div>
+                <h2 className="text-2xl font-semibold text-primary-900 mb-3">
+                  {module.title}
+                </h2>
+                <p className="text-gray-600 mb-6">
+                  {module.description}
+                </p>
+                <Link to={module.link} className="btn-primary mt-auto">
+                  {module.buttonText}
+                </Link>
+              </motion.div>
+            ))}
           </motion.div>
         </div>
       </section>
@@ -149,7 +188,7 @@ const HomePage: React.FC = () => {
                 variants={itemAnimation}
                 whileHover={{ y: -5 }}
               >
-                <Link to="/chat" className="flex items-center">
+                <Link to="/documents" className="flex items-center">
                   <div className="bg-primary-100 p-3 rounded-lg mr-4">
                     <FileText className="h-6 w-6 text-primary-600" />
                   </div>
@@ -176,9 +215,14 @@ const HomePage: React.FC = () => {
                     {t('readyToStartDescription')}
                   </p>
                 </div>
-                <Link to="/chat" className="btn-primary">
-                  {t('createDocument')}
-                </Link>
+                <div className="flex space-x-4">
+                  <Link to="/consultation" className="btn-outline">
+                    {t('getConsultation')}
+                  </Link>
+                  <Link to="/documents" className="btn-primary">
+                    {t('createDocument')}
+                  </Link>
+                </div>
               </div>
             </motion.div>
           </motion.div>
@@ -256,9 +300,14 @@ const HomePage: React.FC = () => {
             <p className="text-lg text-primary-100 max-w-2xl mx-auto mb-8">
               {t('ctaSubtitle')}
             </p>
-            <Link to="/chat" className="btn bg-white text-primary-900 hover:bg-primary-50 btn-lg">
-              {t('startFree')}
-            </Link>
+            <div className="flex flex-col sm:flex-row justify-center gap-4">
+              <Link to="/consultation" className="btn bg-white text-primary-900 hover:bg-primary-50">
+                {t('getConsultation')}
+              </Link>
+              <Link to="/documents" className="btn bg-secondary-600 text-white hover:bg-secondary-700">
+                {t('createDocument')}
+              </Link>
+            </div>
           </motion.div>
         </div>
       </section>

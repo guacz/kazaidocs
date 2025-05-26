@@ -2,7 +2,8 @@ import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Layout from './components/layout/Layout';
 import HomePage from './pages/HomePage';
-import ChatPage from './pages/ChatPage';
+import ConsultationPage from './pages/ConsultationPage';
+import DocumentFillerPage from './pages/DocumentFillerPage';
 import FaqPage from './pages/FaqPage';
 import LegalInfoPage from './pages/LegalInfoPage';
 import ContactPage from './pages/ContactPage';
@@ -13,7 +14,8 @@ function App() {
     <Routes>
       <Route path="/" element={<Layout />}>
         <Route index element={<HomePage />} />
-        <Route path="chat" element={<ChatPage />} />
+        <Route path="consultation" element={<ConsultationPage />} />
+        <Route path="documents" element={<DocumentFillerPage />} />
         <Route path="faq" element={<FaqPage />} />
         <Route path="legal" element={<LegalInfoPage />} />
         <Route path="contact" element={<ContactPage />} />

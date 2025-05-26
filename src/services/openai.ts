@@ -16,17 +16,23 @@ interface OpenAIResponse {
   response: string;
   documentType: DocumentType | null;
   documentStatus: DocumentStatus;
+  references?: { title: string; content: string }[];
 }
 
 interface SendMessageParams {
   messages: Message[];
   documentType: DocumentType | null;
+  mode?: 'consultation' | 'document';
 }
 
 /**
  * Send a chat message to the OpenAI API via Supabase Edge Function
  */
-export const sendChatMessage = async ({ messages, documentType }: SendMessageParams): Promise<OpenAIResponse> => {
+export const sendChatMessage = async ({ 
+  messages, 
+  documentType, 
+  mode = 'document' 
+}: SendMessageParams): Promise<OpenAIResponse> => {
   try {
     // Format messages for the API
     const formattedMessages = messages.map(msg => ({
@@ -37,7 +43,7 @@ export const sendChatMessage = async ({ messages, documentType }: SendMessagePar
     // For development without Supabase connection, provide mock responses
     if (!supabaseUrl || !supabaseAnonKey) {
       console.warn('Supabase credentials not found, using mock response');
-      return getMockResponse(messages, documentType);
+      return getMockResponse(messages, documentType, mode);
     }
 
     // Initialize Supabase client if not already initialized and credentials are available
@@ -50,7 +56,8 @@ export const sendChatMessage = async ({ messages, documentType }: SendMessagePar
       const { data, error } = await supabase.functions.invoke('chat', {
         body: {
           messages: formattedMessages,
-          documentType
+          documentType,
+          mode
         }
       });
 
@@ -62,24 +69,29 @@ export const sendChatMessage = async ({ messages, documentType }: SendMessagePar
       return {
         response: data.response,
         documentType: data.documentType,
-        documentStatus: data.documentStatus
+        documentStatus: data.documentStatus,
+        references: data.references
       };
     } else {
       // Fallback to mock if client initialization failed
-      return getMockResponse(messages, documentType);
+      return getMockResponse(messages, documentType, mode);
     }
   } catch (error) {
     console.error('Error sending message to OpenAI:', error);
     
     // Fall back to a mock response if API call fails
-    return getMockResponse(messages, documentType);
+    return getMockResponse(messages, documentType, mode);
   }
 };
 
 /**
  * Generate a mock response for development or fallback
  */
-const getMockResponse = (messages: Message[], documentType: DocumentType | null): OpenAIResponse => {
+const getMockResponse = (
+  messages: Message[], 
+  documentType: DocumentType | null, 
+  mode: 'consultation' | 'document' = 'document'
+): OpenAIResponse => {
   // Get the last user message
   const lastUserMessage = messages.filter(m => m.role === 'user').pop();
   const userInput = lastUserMessage?.content.toLowerCase() || '';
@@ -103,23 +115,50 @@ const getMockResponse = (messages: Message[], documentType: DocumentType | null)
   // Determine document status based on conversation length
   const documentStatus: DocumentStatus = messages.length >= 5 ? 'ready' : 'in_progress';
   
-  // Generate appropriate response based on context
+  // Generate appropriate response based on context and mode
   let response = 'Извините, я не смог подключиться к серверу. Пожалуйста, проверьте подключение к интернету и попробуйте еще раз.';
-  
-  if (detectedDocType && documentStatus === 'ready') {
-    response = `Отлично! У меня есть вся необходимая информация для составления документа "${detectedDocType}". Вы можете сформировать его, нажав кнопку ниже, или выбрать готовый шаблон для более быстрого заполнения.`;
-  } else if (detectedDocType) {
-    response = `Я понимаю, что вам нужен документ типа "${detectedDocType}". Расскажите, пожалуйста, подробнее о ваших требованиях к этому документу.`;
-  } else if (userInput.includes('привет') || userInput.includes('здравствуй')) {
-    response = 'Здравствуйте! Я ИИ-ассистент, который поможет вам составить юридический документ. Какой тип документа вам нужен?';
+  let references = undefined;
+
+  if (mode === 'consultation') {
+    if (userInput.includes('договор')) {
+      response = 'Согласно Гражданскому кодексу РК, договор считается заключенным, когда стороны достигли соглашения по всем существенным условиям. Для договора купли-продажи существенными условиями являются предмет и цена. Хотите узнать больше о конкретных типах договоров?';
+      references = [
+        {
+          title: 'Гражданский кодекс РК, статья 393',
+          content: 'Договор считается заключенным, когда между сторонами в требуемой в подлежащих случаях форме достигнуто соглашение по всем существенным условиям договора.'
+        }
+      ];
+    } else if (userInput.includes('трудов')) {
+      response = 'По трудовому законодательству РК, трудовой договор должен быть заключен в письменной форме. Обязательные условия включают место работы, трудовую функцию, дату начала работы, размер и условия оплаты труда. Трудовой договор составляется в двух экземплярах.';
+      references = [
+        {
+          title: 'Трудовой кодекс РК, статья 33',
+          content: 'Трудовой договор - письменное соглашение между работником и работодателем, в соответствии с которым работник обязуется лично выполнять определенную работу, а работодатель обязуется предоставить работу, выплачивать работнику заработную плату и обеспечивать условия труда.'
+        }
+      ];
+    } else if (userInput.includes('привет') || userInput.includes('здравствуй')) {
+      response = 'Здравствуйте! Я юридический консультант, специализирующийся на законодательстве Республики Казахстан. Я могу предоставить вам информацию по правовым вопросам. Что именно вас интересует?';
+    } else {
+      response = 'Я могу предоставить консультацию по различным правовым вопросам в соответствии с законодательством Республики Казахстан. Пожалуйста, уточните ваш вопрос, чтобы я мог дать более точный ответ.';
+    }
   } else {
-    response = 'Пожалуйста, уточните, какой тип юридического документа вам нужен? Например, договор купли-продажи, аренды, оказания услуг и т.д.';
+    // Document generation mode responses
+    if (detectedDocType && documentStatus === 'ready') {
+      response = `Отлично! У меня есть вся необходимая информация для составления документа "${detectedDocType}". Вы можете сформировать его, нажав кнопку ниже, или выбрать готовый шаблон для более быстрого заполнения.`;
+    } else if (detectedDocType) {
+      response = `Я понимаю, что вам нужен документ типа "${detectedDocType}". Расскажите, пожалуйста, подробнее о ваших требованиях к этому документу.`;
+    } else if (userInput.includes('привет') || userInput.includes('здравствуй')) {
+      response = 'Здравствуйте! Я ИИ-ассистент, который поможет вам составить юридический документ. Какой тип документа вам нужен?';
+    } else {
+      response = 'Пожалуйста, уточните, какой тип юридического документа вам нужен? Например, договор купли-продажи, аренды, оказания услуг и т.д.';
+    }
   }
   
   return {
     response,
     documentType: detectedDocType,
-    documentStatus
+    documentStatus,
+    references
   };
 };
 

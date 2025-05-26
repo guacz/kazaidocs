@@ -28,7 +28,8 @@ const Header: React.FC = () => {
   // Navigation links
   const navLinks = [
     { to: '/', label: t('home') },
-    { to: '/chat', label: t('createDocument') },
+    { to: '/consultation', label: t('consultation') },
+    { to: '/documents', label: t('documentFiller') },
     { to: '/faq', label: t('faq') },
     { to: '/contact', label: t('contact') },
   ];

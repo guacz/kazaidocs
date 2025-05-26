@@ -27,7 +27,7 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { messages, documentType, templateId, formData } = await req.json();
+    const { messages, documentType, templateId, formData, mode = "document" } = await req.json();
 
     if (!messages || !Array.isArray(messages)) {
       return new Response(
@@ -86,19 +86,34 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // System prompt to define the AI's role and behavior
-    const systemPrompt = {
-      role: "system",
-      content: `You are a legal assistant specializing in Kazakhstan law. 
-      Your purpose is to help users create legal documents. 
-      Provide clear explanations and ask relevant questions to gather necessary information.
-      Always respond in the same language the user is using (Kazakh or Russian).
-      ${documentType ? `The user is creating a ${documentType} document.` : ""}
-      Base all advice and documents on current Kazakhstan legislation.
-      
-      You can now also recommend users to use pre-made templates for faster document creation.
-      When appropriate, mention that they can use templates by clicking the "Use Template" button.`
-    };
+    // Choose appropriate system prompt based on the mode
+    let systemPrompt;
+    
+    if (mode === "consultation") {
+      systemPrompt = {
+        role: "system",
+        content: `You are a legal assistant specializing in Kazakhstan law. 
+        Your purpose is to provide consultations about legal matters based STRICTLY on Kazakhstan's legislation.
+        You must ONLY provide information from official legal sources and documents that have been uploaded to the knowledge base.
+        NEVER make up or invent information that is not in your knowledge base.
+        Always respond in the same language the user is using (Kazakh or Russian).
+        When providing answers, cite the specific legal articles, codes, or documents you're referencing.
+        If you don't have information on a specific legal question, admit that you don't have that information rather than guessing.`
+      };
+    } else {
+      systemPrompt = {
+        role: "system",
+        content: `You are a legal assistant specializing in Kazakhstan law. 
+        Your purpose is to help users create legal documents. 
+        Provide clear explanations and ask relevant questions to gather necessary information.
+        Always respond in the same language the user is using (Kazakh or Russian).
+        ${documentType ? `The user is creating a ${documentType} document.` : ""}
+        Base all advice and documents on current Kazakhstan legislation.
+        
+        You can now also recommend users to use pre-made templates for faster document creation.
+        When appropriate, mention that they can use templates by clicking the "Use Template" button.`
+      };
+    }
 
     // Add the system message at the beginning if not already present
     const formattedMessages = [
@@ -119,9 +134,34 @@ Deno.serve(async (req: Request) => {
 
     const assistantResponse = response.choices[0]?.message?.content || "";
 
-    // Detect document type from the conversation if not already set
+    // In consultation mode, we would retrieve references from our knowledge base
+    // For this prototype, we'll simulate with mock references when relevant keywords are found
+    let references;
+    if (mode === "consultation") {
+      const lastUserMessage = messages.filter((m: any) => m.role === 'user').pop();
+      if (lastUserMessage) {
+        const content = lastUserMessage.content.toLowerCase();
+        if (content.includes("договор")) {
+          references = [
+            {
+              title: "Гражданский кодекс РК, статья 393",
+              content: "Договор считается заключенным, когда между сторонами в требуемой в подлежащих случаях форме достигнуто соглашение по всем существенным условиям договора."
+            }
+          ];
+        } else if (content.includes("трудов")) {
+          references = [
+            {
+              title: "Трудовой кодекс РК, статья 33",
+              content: "Трудовой договор - письменное соглашение между работником и работодателем, в соответствии с которым работник обязуется лично выполнять определенную работу, а работодатель обязуется предоставить работу, выплачивать работнику заработную плату и обеспечивать условия труда."
+            }
+          ];
+        }
+      }
+    }
+
+    // Detect document type from the conversation if not already set and in document mode
     let detectedDocType = documentType;
-    if (!detectedDocType) {
+    if (mode === "document" && !detectedDocType) {
       const documentKeywords = {
         'купля-продажа': 'purchase_sale',
         'продажа': 'purchase_sale',
@@ -153,15 +193,15 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    // Determine if the document is ready to generate
-    // For this prototype, we'll assume it's ready after 5 message exchanges
-    const isDocumentReady = messages.length >= 5;
+    // Determine if the document is ready to generate (only relevant in document mode)
+    const isDocumentReady = mode === "document" && messages.length >= 5;
 
     return new Response(
       JSON.stringify({
         response: assistantResponse,
         documentType: detectedDocType,
-        documentStatus: isDocumentReady ? 'ready' : 'in_progress'
+        documentStatus: isDocumentReady ? 'ready' : 'in_progress',
+        references
       }),
       {
         headers: {
