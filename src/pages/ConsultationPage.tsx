@@ -3,9 +3,9 @@ import { Send, RefreshCw, Upload, PanelRightOpen } from 'lucide-react';
 import { useLocale } from '../contexts/LocaleContext';
 import { useAuth } from '../contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Message } from '../types';
 import { ChatProvider, useChat } from '../contexts/ChatContext';
 import KnowledgePanel from '../components/consultation/KnowledgePanel';
+import ChatMessage from '../components/chat/ChatMessage';
 
 const ConsultationChat: React.FC = () => {
   const { messages, sendMessage, resetChat, isProcessing } = useChat();
@@ -53,30 +53,7 @@ const ConsultationChat: React.FC = () => {
         <div className={`flex-1 overflow-y-auto bg-gray-50 ${showKnowledgePanel ? 'hidden md:block' : ''}`}>
           <div className="chat-container pb-8">
             {messages.map((message) => (
-              <div 
-                key={message.id} 
-                className={`chat-message ${message.role === 'user' ? 'user-message' : 'ai-message'}`}
-              >
-                {message.role !== 'user' && (
-                  <div className="flex-shrink-0 mr-3">
-                    <div className="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center">
-                      <span className="h-5 w-5 text-primary-700">AI</span>
-                    </div>
-                  </div>
-                )}
-                
-                <div className={`chat-bubble ${message.role === 'user' ? 'user-bubble' : 'ai-bubble'}`}>
-                  {message.content}
-                </div>
-                
-                {message.role === 'user' && (
-                  <div className="flex-shrink-0 ml-3">
-                    <div className="h-8 w-8 rounded-full bg-primary-600 flex items-center justify-center">
-                      <span className="h-5 w-5 text-white">U</span>
-                    </div>
-                  </div>
-                )}
-              </div>
+              <ChatMessage key={message.id} message={message} />
             ))}
             
             {/* Auto-scroll anchor */}
@@ -171,7 +148,7 @@ const ConsultationChat: React.FC = () => {
 
 const ConsultationPage: React.FC = () => {
   return (
-    <ChatProvider>
+    <ChatProvider mode="consultation">
       <ConsultationChat />
     </ChatProvider>
   );

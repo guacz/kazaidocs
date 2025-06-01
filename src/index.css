@@ -81,7 +81,7 @@
   }
 
   .chat-message {
-    @apply flex w-full max-w-4xl mx-auto animate-fadeIn;
+    @apply flex w-full max-w-4xl mx-auto;
   }
 
   .chat-bubble {
@@ -102,6 +102,57 @@
 
   .ai-bubble {
     @apply bg-white border border-gray-200 text-gray-800 rounded-tl-none shadow-sm;
+  }
+
+  /* Loading dots animation */
+  .dot-typing {
+    position: relative;
+    width: 10px;
+    height: 10px;
+    border-radius: 5px;
+    background-color: theme('colors.primary.600');
+    color: theme('colors.primary.600');
+    animation: dot-typing 1.5s infinite linear;
+  }
+  
+  .dot-typing::before,
+  .dot-typing::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 5px;
+    background-color: theme('colors.primary.600');
+    color: theme('colors.primary.600');
+  }
+  
+  .dot-typing::before {
+    left: -15px;
+    animation: dot-typing 1.5s infinite linear;
+    animation-delay: 0s;
+  }
+  
+  .dot-typing::after {
+    left: 15px;
+    animation: dot-typing 1.5s infinite linear;
+    animation-delay: 0.75s;
+  }
+  
+  @keyframes dot-typing {
+    0% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(0.6);
+      opacity: 0.5;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
   }
 }
 

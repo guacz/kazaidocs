@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FileText, MessageSquare, Download, CheckCircle, Users, Bot, FileBox } from 'lucide-react';
+import { FileText, MessageSquare, Download, CheckCircle, Bot, FileBox } from 'lucide-react';
 import { useLocale } from '../contexts/LocaleContext';
 import { motion } from 'framer-motion';
 

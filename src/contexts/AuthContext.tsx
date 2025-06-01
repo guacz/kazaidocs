@@ -13,7 +13,7 @@ interface AuthContextType {
   openAuthModal: () => void;
   closeAuthModal: () => void;
   login: (email: string, phone?: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -24,7 +24,7 @@ const AuthContext = createContext<AuthContextType>({
   openAuthModal: () => {},
   closeAuthModal: () => {},
   login: async () => {},
-  logout: () => {},
+  logout: async () => {},
 });
 
 interface AuthProviderProps {
@@ -80,8 +80,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       // For MVP, we'll just set the user directly without actual authentication
       // In a real app, this would call an auth API
-      const newUser = { email, phone };
-      setUser(newUser as any);
+      const newUser = { email, phone, id: Date.now().toString() } as User;
+      setUser(newUser);
       localStorage.setItem('user', JSON.stringify(newUser));
       closeAuthModal();
     } catch (err) {
@@ -95,6 +95,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       await supabase.auth.signOut();
       setUser(null);
+      localStorage.removeItem('user');
     } catch (err) {
       console.error('Error signing out:', err);
     }

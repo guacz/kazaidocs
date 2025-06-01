@@ -140,7 +140,7 @@ const Header: React.FC = () => {
 
       {/* Mobile Navigation */}
       {isMenuOpen && (
-        <nav className="md:hidden bg-white border-t">
+        <nav className="md:hidden bg-white border-t border-gray-200">
           <div className="container mx-auto px-4 py-3">
             <ul className="space-y-4 py-2">
               {navLinks.map((link) => (

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { Message, DocumentType, DocumentStatus, TemplateFormData } from '../types';
 import { useLocale } from './LocaleContext';
+import { useAuth } from './AuthContext';
 import { sendChatMessage, generateDocument as generateDocumentAPI, generateDocumentFromTemplate } from '../services/openai';
 
 interface ChatContextType {
@@ -32,6 +33,7 @@ interface ChatProviderProps {
 
 export const ChatProvider: React.FC<ChatProviderProps> = ({ children, mode = 'consultation' }) => {
   const { t } = useLocale();
+  const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',

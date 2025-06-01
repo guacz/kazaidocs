@@ -11,9 +11,9 @@ export default {
           300: 'rgb(169, 188, 224)',
           400: 'rgb(141, 163, 214)',
           500: 'rgb(112, 133, 186)',
-          600: 'rgb(var(--color-secondary) / <alpha-value>)',
+          600: 'rgb(84, 105, 141)',
           700: 'rgb(56, 84, 138)',
-          800: 'rgb(var(--color-primary) / <alpha-value>)',
+          800: 'rgb(39, 67, 125)',
           900: 'rgb(27, 46, 86)',
         },
         secondary: {
@@ -23,24 +23,24 @@ export default {
           300: 'rgb(173, 198, 223)',
           400: 'rgb(146, 179, 212)',
           500: 'rgb(118, 139, 183)',
-          600: 'rgb(var(--color-secondary) / <alpha-value>)',
+          600: 'rgb(84, 105, 141)',
           700: 'rgb(62, 84, 123)',
           800: 'rgb(47, 68, 102)',
           900: 'rgb(32, 52, 81)',
         },
         accent: {
-          500: 'rgb(var(--color-accent) / <alpha-value>)',
+          500: 'rgb(233, 76, 88)',
         },
         success: {
-          500: 'rgb(var(--color-success) / <alpha-value>)',
+          500: 'rgb(34, 197, 94)',
         },
         warning: {
-          500: 'rgb(var(--color-warning) / <alpha-value>)',
+          500: 'rgb(234, 179, 8)',
         },
         error: {
-          500: 'rgb(var(--color-error) / <alpha-value>)',
+          500: 'rgb(220, 38, 38)',
         },
-        background: 'rgb(var(--color-background) / <alpha-value>)',
+        background: 'rgb(250, 250, 250)',
       },
       fontFamily: {
         sans: [
